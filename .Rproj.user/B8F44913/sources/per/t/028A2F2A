@@ -1,0 +1,26 @@
+{
+    "id": "028A2F2A",
+    "path": "~/Desktop/Università/Master Padova/Biostatistica Avanzata per la Ricerca Clinica/Project Work/project.work.master.BARC/data-raw/statin_db.R",
+    "project_path": "data-raw/statin_db.R",
+    "type": "r_source",
+    "hash": "3223815246",
+    "contents": "",
+    "dirty": false,
+    "created": 1689155485795.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "12,0",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1689153373,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1689153373,
+    "read_only": false,
+    "read_only_alternatives": []
+}
