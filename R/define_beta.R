@@ -1,6 +1,6 @@
-#' @title {Define beta: definire i coefficienti di regressione per la simulazione della variabile di outcome}
+#' @title {Define beta: define the coefficients for simulating the outcome}
 #'
-#' @param {data} {Base di dati, ovvero quella del nostro caso studio}
+#' @param {data} {Case study dataset}
 #'
 #'
 define_beta <- function(data){

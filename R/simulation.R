@@ -1,16 +1,16 @@
-#' @title {Simulation: simulazione}
+#' @title {Simulation: Monte Carlo simulation}
 #'
-#' @description Simulare una determinata configurazione che vogliamo testare
+#' @description Simulated a specified configuration
 #'
-#' @param {n} {Numero di osservazioni che vogliamo simulare}
-#' @param {n_datasets} {Numero di dataset che vogliamo simulare, default 1000}
-#' @param {seed} {Seed per la randomizzazione, default 42}
-#' @param {treatment_prevalence} {La treatment prevalence desiderata}
-#' @param {treatment_effect} {Il treatment effect stabilito, default -0.2}
-#' @param {approach} {Tipo di approccio che vogliamo utilizzare, i.e. crude, IPW, OW}
-#' @param {trim} {Se si è scelto IPW, specificare il cutoff per l'eventuale trimming (1 indica no trimming)}
+#' @param {n} {Number of simulated observations}
+#' @param {n_datasets} {Number of simulated dataset, default 1000}
+#' @param {seed} {Random seed, default 42}
+#' @param {treatment_prevalence} {Desired treatment prevalence}
+#' @param {treatment_effect} {Fixed treatment effect, default -0.9}
+#' @param {approach} {Type of approach, i.e. crude, IPW, OW}
+#' @param {trim} {If IPW, for specifying the desired trimming cutoff (1 means no trimming)}
 #'
-#' @return {Una lista contenente le seguenti informazioni: livello di sbilanciamento delle covariate, il bias, il RMSE}
+#' @return {A list containing: balancing levels, bias and RMSE}
 
 
 simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, treatment_effect = -0.2, approach = c('crude', 'IPW', 'OW'), trim = NULL){

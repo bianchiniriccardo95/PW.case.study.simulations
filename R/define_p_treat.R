@@ -1,12 +1,12 @@
-#' @title {Definizione propensity score osservazioni simulate}
+#' @title {Simulate the propensity score for the simulated observations}
 #'
-#' @description Definisce la probabilità di ricevere il trattamento per ciascuna delle osservazioni simulate
+#' @description Define the probability of receiving the treatment giving a series of simulated baseline covariates
 #'
-#' @param {int} {Intercetta del modello di regressione logistica: ottenibile utilizzando la funzione `bisection`}
+#' @param {int} {Logistic regression model intercept, obtained through `bisection`}
 #'
-#' @param {alpha} {Vettore dei coefficienti di regressione logistica tra le variabili confondenti e la probabilità del trattamento, deve avere la stessa lunghezza del numero di colonne della matrice `baseline_covariates`, ovvero 9}
+#' @param {alpha} {Logistic regression model coefficients: must have the same length as the number of columns of the matrix obtained through `baseline_covariates`}
 #'
-#' @param {baseline_covariates} {Variabili confondenti simulate utilizzando la funzione `baseline_covariates`}
+#' @param {baseline_covariates} {Simulated baseline covariates obtained throught `baseline_covariates`}
 #'
 #'
 

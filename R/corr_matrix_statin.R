@@ -1,6 +1,6 @@
-#' @title {corr_matrix_statin: estrazione della matrice di correlazione dal caso studio}
+#' @title {corr_matrix_statin: correlation matrix extraction from case study}
 #'
-#' @param {data} {Dataset del caso studio sull'utilizzo di statine}
+#' @param {data} {Case study dataset}
 #'
 #'
 

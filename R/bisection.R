@@ -1,20 +1,20 @@
-#' @title {Bisection: definizione dell'intercetta per il modello di stima dei propensity score}
+#' @title {Bisection: find the intercept for the propensity score model}
 #'
-#' @description Per trovare l'intercetta adeguata al modello di stima dei propensity score per ottenere una determinata treatment prevalence desiderata.
+#' @description To find the right intercept of the propensity score model to obtain a specific treatment prevalence
 #'
-#' @param {treatment_prevalence} {La treatment prevalence desiderata (deve andare da 0 a 1)}
+#' @param {treatment_prevalence} {Desired treatment prevalence}
 #'
-#' @param {lower} {Valore minimo che l'intercetta può assumere}
+#' @param {lower} {Minimum value that the intercept can assume}
 #'
-#' @param {upper} {Valore massimo che l'intercetta può assumere}
+#' @param {upper} {Maximum value that the intercept can assume}
 #'
-#' @param {maxIter} {Massimo numero di iterazioni per la ricerca dell'intercetta}
+#' @param {maxIter} {Max number of iterations}
 #'
-#' @param {maxError} {Errore massimo}
+#' @param {maxError} {Max error}
 #'
-#' @param {baseline_covariates} {Variabili confondenti simulate attraverso la funzione `baseline_covariates`}
+#' @param {baseline_covariates} {Simulated baseline covariates, obtained through `baseline_covariates`}
 #'
-#' @param {alpha} {Vettore degli alpha, necessario per la funzione `define_p_treat`}
+#' @param {alpha} {Vector of alphas, necessary for using `define_p_treat`}
 #'
 #'
 

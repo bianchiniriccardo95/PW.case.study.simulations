@@ -1,13 +1,13 @@
 #' @title {Simulation results}
 #'
-#' @description Estrarre i risultati delle simulazioni in termini di bias, SMD e RMSE
+#' @description Extract the simulation results in terms of Absolute Standardized Mean Difference, Bias and RMSE
 #'
-#' @param {sim_results} {Output della funzione `simulation`}
-#' @param {treatment_effect} {Treatment effect stabilito, deve essere uguale a quello di simulation, default -0.2}
-#' @export results Una lista contenente gli ate estimates, il bias, il rmse e l'average SMD
+#' @param {sim_results} {Output of `simulation`}
+#' @param {treatment_effect} {Desired treatment effect, default -0.9}
+#' @export results A list containing the ATE estimates, average ASMD,bias and RMSE
 #'
 #'
-simulation_results <- function(sim_results, treatment_effect = -0.2){
+simulation_results <- function(sim_results, treatment_effect = -0.9){
   smd_df <- data.frame()
   for (i in 1:length(sim_results)){
     smd_data <- sim_results[[i]][[1]]

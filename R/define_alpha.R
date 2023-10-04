@@ -1,6 +1,6 @@
-#' @title {Define alpha: definire i coefficienti di regressione logistica per le variabili confondenti}
+#' @title {Define alpha: define the logistic regression coefficients}
 #'
-#' @param {data} {Base di dati iniziali, che sarebbe quella del mio caso studio}
+#' @param {data} {Case study dataset}
 #'
 #'
 
