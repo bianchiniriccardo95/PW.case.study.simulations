@@ -1,6 +1,6 @@
-Package: project.work.master.BARC
+Package: PW.case.study.simulations
 Type: Package
-Title: Project Work Master in Biostatistica Avanzata per la ricerca clinica
+Title: Exploring the impact of Propensity Score Weighting for causal inference: a simulation and case study.
 Version: 0.1.0
 Author: Riccardo Bianchini
 Maintainer: Riccardo Bianchini <riccardo.bianchini.1@studenti.unipd.it>
