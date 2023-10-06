@@ -1,14 +1,13 @@
 ---
 title: "Case Study Analysis"
 author: "Riccardo Bianchini"
-date: "`r Sys.Date()`"
 output: 
   html_document:
     toc: yes
     toc_depth: 4
 ---
 
-# TITLE
+# Comparing the impact of propensity score weighting methods on causal inference using an observational case study
 
 The study leverages openly accessible data, available on DRYAD (<https://datadryad.org/stash/dataset/doi:10.5061/dryad.6qs53>), that are part of the third survey of the Prevention of REnal and Vascular ENd-stage Disease (PREVEND). This observational study evaluated the association between statin use and cognitive function in a large population with more than 10-year follow-up on statin use. Additionally, it sought to determine if the duration of treatment impacted this association.
 
@@ -21,12 +20,12 @@ The **Ruff Figural Fluency Test (RFFT)** score was used as the primary outcome m
 Baseline data about demographis, clinical characteristics and medical history were collected for each patient. In particular, the covariates that were taken into consideration for the following analyses were:
 
 -   Gender (Male/Female)
--   Educational level (≤ 12 years, \>12 years)
+-   Educational level (≤ 12 years, >12 years)
 -   History of vascular events (CVD) (Yes/No)
 -   Hypertension (Yes/No)
 -   Diabetes Mellitus (DM) (Yes/No)
 -   Smoking status (Yes/No)
--   Albuminuria levels (\<30 mg/24hr, ≥30 mg/24hr)
+-   Albuminuria levels (<30 mg/24hr, ≥30 mg/24hr)
 -   Age (in years)
 -   Body Mass Index (BMI, in kg/m2)
 
@@ -34,7 +33,452 @@ Baseline data about demographis, clinical characteristics and medical history we
 
 Import the libraries necessary for the analysis
 
-```{r}
-library()
+```{r results='hide', warning = FALSE, message = FALSE}
+library(PW.case.study.simulations)
+library(Hmisc)
+library(gtsummary)
 ```
 
+The `PW.case.study.simulations` package was built to analyse both the case study and to perform simulations: by loading this, the required libraries for the analysis are loaded as well.
+
+## Dataset
+
+Let's now load the dataset:
+
+```{r}
+#The dataset is available in the PW.case.study.simulations package
+data("statin_db")
+statin_db <- statin_db %>% 
+  mutate(Albuminuria = Albuminuria_1)
+```
+
+## Covariate balance evaluation
+
+Let's now have a look at the distribution of the baseline covariates between the two treatment groups, in order to evaluate their balancing. 
+
+The baseline covariates, as said before, are:
+
+- Gender (`Gender`)
+- Educational Level (`Education`)
+- Smoking status (`Smoking`)
+- History of vascular events (`CVD`)
+- Hypertension (`Hypertension`)
+- Diabetes Mellitus (`DM`)
+- Albuminuria Levels (`Albuminuria`)
+- Age (`Age`)
+- Body Mass Index (`BMI`)
+
+```{r}
+confounder_unbalancing <- summary(
+  Statin ~ Age + Gender + Education + CVD + Smoking + DM + Hypertension + BMI + Albuminuria,
+  data = statin_db,
+  method = 'reverse')
+
+print(confounder_unbalancing)
+```
+
+To have a better table representation, let's use the functions of the `gtsummary` package:
+
+```{r}
+statin_db_descriptives <- statin_db %>% 
+  mutate(
+    Statin = factor(ifelse(statin_db$Statin == 1, 'Yes', 'No')),
+    Education = factor(ifelse(statin_db$Education == 0, '≤12 years', '>12 years')),
+    Gender = factor(ifelse(statin_db$Gender == 0, 'Male', 'Female')),
+    CVD = factor(ifelse(statin_db$CVD == 1, 'Yes', 'No')),
+    DM = factor(ifelse(statin_db$DM == 1, 'Yes', 'No')),
+    Smoking = factor(ifelse(statin_db$Smoking == 1, 'Yes', 'No')),
+    Albuminuria_1 = factor(ifelse(statin_db$Albuminuria_1 == 0, "<30", "≥30")),
+    Hypertension = factor(ifelse(statin_db$Hypertension == 0, 'No', 'Yes'))
+  )
+
+statin_db_descriptives$Gender <- relevel(statin_db_descriptives$Gender, ref = 'Male')
+statin_db_descriptives$Education <- ordered(statin_db_descriptives$Education, levels = c('≤12 years', '>12 years'))
+statin_db_descriptives$Albuminuria_2 <- ordered(statin_db_descriptives$Albuminuria_2, levels = c("<30", "≥30"))
+statin_db_descriptives$Smoking <- ordered(statin_db_descriptives$Smoking, levels = c('No', 'Yes'))
+statin_db_descriptives$Statin <- ordered(statin_db_descriptives$Statin, levels = c('Yes','No'))
+statin_db_descriptives$Hypertension <- ordered(statin_db_descriptives$Hypertension, levels = c('No','Yes'))
+
+statin_db_descriptives %>% 
+  select(Age,Gender,Education,CVD,DM,Hypertension,Smoking,Albuminuria_1,BMI, Statin, RFFT) %>% 
+  gtsummary::tbl_summary(
+    by = Statin,
+    statistic = list(
+      all_continuous() ~ "{mean} ({sd})",
+      all_categorical() ~ "{n} ({p}%)"
+    ),
+    type = all_categorical() ~ "categorical", 
+    digits = all_continuous() ~ 1,
+    label = list(
+      Statin ~ "Statin use",
+      Age ~ "Age (years)",
+      DM ~ "Diabetes Mellitus", 
+      Albuminuria_1 ~ "Albuminuria (mg/24hr)",
+      CVD ~"History of vascular events",
+      BMI ~ "Body Mass Index (kg/m\u00B2)"
+    )
+  ) %>% bold_labels() %>% modify_header(label = "") %>% 
+  italicize_labels() %>% 
+  modify_spanning_header(all_stat_cols() ~ "**Statin use**") %>% 
+  modify_footnote(update = everything() ~ NA) %>% 
+  add_p()
+```
+
+### What can be said about covariate balance?
+
+- Statin users are generally **older** than non-users.
+- Statin users are prevalently males, while non-users are prevalently females.
+- Statin users have a higher percentage of subjects with a higher prevalence of cardiovascular diseases' risk factors.
+
+The baseline unbalance can be also evaluated by a love plot, depicting the Absolute Standardized Mean Difference between groups for each covariate.
+
+```{r}
+love_plot_un <- bal.tab(
+  Statin ~ Age + Gender + Education + CVD + Smoking + DM + Hypertension + BMI + Albuminuria,
+  data = statin_db,
+  un = TRUE,
+  continuous = 'std',
+  binary = 'std',
+  abs = TRUE,
+  s.d.denom = 'pooled',
+  stats = c('mean.diffs', 'variance.ratios')
+) %>% love.plot(thresholds = 0.1)
+
+love_plot_un + theme(legend.position ='none')
+```
+
+## Outcome analysis (without weighting)
+
+The effect of statin use on cognitive functions is firstly evaluated without taking in consideration the unbalance between groups. 
+
+```{r}
+crude_estimation <- lm(RFFT ~ Statin, data = statin_db)
+summary(crude_estimation)
+```
+
+According to the estimation, statin use has a *significant negative effect on cognitive functions*.
+
+## Propensity score estimation
+
+Let's now estimate the propensity score, the conditional probability of assignment to a particular treatment given a series of baseline covariates. Three different methods are used:
+
+- Logistic Regression (LR) (method `ps`)
+- Covariate Balancing Propensity Score (CBPS) (method `cbps`)
+- Gradient-boosted Models (GBM) (method `gbm`)
+
+To estimate the propensity score, the `weightit` function from the `WeightIt` package is used that, beyond estimating weights, also allows PS estimation.
+
+```{r}
+set.seed(42) #Set a random seed for reproducibility
+
+methods <- c('ps','cbps','gbm')
+
+weightit_list <- map(
+  methods,
+  ~ weightit(
+    Statin ~ Age + Gender + Education + CVD + Smoking + DM + Hypertension + BMI + Albuminuria,
+    data = statin_db,
+    method = .x,
+    estimand = 'ATE',
+    stop.method = 'es.mean'
+  )
+) %>% set_names(., nm = methods)
+```
+
+
+### Common Support Evaluation
+
+Let's now extract the propensity scores and evaluate the common support.
+
+```{r}
+statin_db_ps <- statin_db[,c(1:26,32)] %>% 
+  mutate(`Logistic Regression` = weightit_list$ps$ps,
+         `CBPS` = weightit_list$cbps$ps,
+         `GBM` = weightit_list$gbm$ps)
+
+statin_db_long <- pivot_longer(statin_db_ps, cols = c(28:ncol(statin_db_ps)), names_to = 'method', values_to = 'ps_value')
+
+ggplot(data = statin_db_long, aes(x = ps_value, y = after_stat(density), fill = Statin)) +
+  geom_density(alpha = 0.5) +
+  theme_bw() + 
+  facet_wrap(~ method)+
+  labs(x = 'Propensity score', y = 'Density')
+```
+
+Evaluation of common support showed that all three PS estimation methods (LR, CBPS, GBM) demonstrated a moderate overlap between the two groups. Notably, in the control group, there was a high density of scores near 0, indicating some subjects with very low probabilities of receiving the treatment.
+
+For the following analyses, PS estimated using Logistic Regression are used.
+
+## Inverse Probability Weighting (IPW) with Trimming
+
+IPW assigns each patient a weight that is the reciprocal of its estimated PS. Weight trimming refers to the reduction of weights larger than that at a given quantile q to the weight at that given quantile. This can be useful in controlling for extreme weights, which can cause bias and large variability in the estimated effect. 
+
+Trimmings at different quantiles are evaluated:
+
+- Trimming at q = 0.9
+- Trimming at q = 0.95
+- Trimming at q = 0.99
+
+### Covariate balance
+
+```{r, warning = F, message = F}
+weightit_trimming_cutoff <- weightit(
+  Statin ~ Age + Gender + Education + CVD + Smoking + DM + Hypertension + BMI + Albuminuria,
+  data = statin_db,
+  method = 'ps',
+  estimand = 'ATE' #IPW 
+)
+
+statin_db_trimming_cutoffs = statin_db %>% 
+  mutate(wt_0.9 = trim(weightit_trimming_cutoff$weights, at = 0.9, treat = statin_db$Statin),
+         wt_0.95 = trim(weightit_trimming_cutoff$weights, at = 0.95, treat = statin_db$Statin),
+         wt_0.99 = trim(weightit_trimming_cutoff$weights, at = .99, treat = statin_db$Statin),
+         wt = weightit_trimming_cutoff$weights)
+
+trimming_cutoffs_bals <- map(
+  c('wt_0.9','wt_0.95','wt_0.99'),
+  ~ bal.tab(x = statin_db_trimming_cutoffs[,c('Age','Gender','Education','CVD','Smoking','DM', 'Hypertension', 'BMI', 'Albuminuria')], treat = statin_db_trimming_cutoffs$Statin, weights = statin_db_trimming_cutoffs[,.x], un = TRUE, abs = TRUE, s.d.denom = 'pooled', stats = c('mean.diffs', 'variance.ratios'))) %>% set_names(., nm = c('Trimming at q = 0.9', 'Trimming at q = 0.95', 'Trimming at q = 0.99'))
+
+love_plots_trimming_cutoffs <- map(
+  trimming_cutoffs_bals,
+  ~ {love.plot(.x, thresholds = 0.1) + labs(title = '')}
+)
+
+ggarrange(plotlist = love_plots_trimming_cutoffs,common.legend = T, labels = names(trimming_cutoffs_bals))
+```
+
+### Outcome estimation
+
+Let's now evaluate the effect of statin use on RFFT score, using the weights calculated using IPW at different trimming cutoffs.
+
+```{r}
+#IPW with trimming at q=0.9
+svy_design <- svydesign(
+  ids = ~ 1,
+  weights = ~ wt_0.9,
+  data = statin_db_trimming_cutoffs
+)
+
+out_model_statin <- svyglm(
+  RFFT ~ Statin,
+  design = svy_design,
+  family = gaussian()
+)
+
+summary(out_model_statin)
+```
+
+```{r}
+#IPW with trimming at q=0.95
+svy_design_0.95 <- svydesign(
+  ids = ~ 1,
+  weights = ~ wt_0.95,
+  data = statin_db_trimming_cutoffs
+)
+
+out_model_statin_0.95 <- svyglm(
+  RFFT ~ Statin,
+  design = svy_design_0.95,
+  family = gaussian()
+)
+
+summary(out_model_statin_0.95)
+```
+
+```{r}
+#IPW with trimming at q=0.99
+svy_design_0.99 <- svydesign(
+  ids = ~ 1,
+  weights = ~ wt_0.99,
+  data = statin_db_trimming_cutoffs
+)
+
+out_model_statin_0.99 <- svyglm(
+  RFFT ~ Statin,
+  design = svy_design_0.99,
+  family = gaussian()
+)
+
+summary(out_model_statin_0.99)
+```
+
+## Overlap Weighting
+
+Overlap Weighting (OW) is a weighting technique in which each unit’s weight is defined as the probability of that unit being assigned to the opposite group. Given its formulation, patients with propensity scores near 0.5 make the largest contribution, while patients with PSs near 0 and 1 make the smallest contribution.
+
+```{r, warning = F}
+#OW weights calculation
+
+OW_trimming_cutoff <- weightit(
+  Statin ~ Age + Gender + Education + CVD + Smoking + DM + Hypertension + BMI + Albuminuria,
+  data = statin_db,
+  method = 'ps',
+  estimand = 'ATO' #OW 
+)
+
+statin_db_overlap_wt <- statin_db %>% 
+  mutate(overlap_wt = OW_trimming_cutoff$weights)
+
+OW_bal_tab <- bal.tab(x = statin_db_overlap_wt[,c('Age','Gender','Education','CVD','Smoking','DM', 'Hypertension', 'BMI', 'Albuminuria')], treat = statin_db_overlap_wt$Statin, weights = statin_db_overlap_wt[,'overlap_wt'], un = TRUE, abs = TRUE, s.d.denom = 'pooled', stats = c('mean.diffs', 'variance.ratios'))
+
+love_plot_ow <- love.plot(OW_bal_tab, thresholds = 0.1)
+love_plot_ow
+```
+
+If we compare the covariate balance across the different weighting methods:
+
+```{r}
+final_love_plot_list <- c(love_plots_trimming_cutoffs, list(love_plot_ow)) %>% 
+  set_names(., nm = c(names(love_plots_trimming_cutoffs), "OW"))
+ggarrange(plotlist = final_love_plot_list,common.legend = T, labels = names(final_love_plot_list))
+```
+
+we can see that IPW trimming at q = 0.9 led to the least favourable balance scenario, while achieving the best balance resulted from trimming weights at q = 0.99. Moreover, weighting subjects with OW yielded nearly a perfect balance, as expected. 
+
+### Outcome estimation
+
+The estimated effect of statin use on cognitive function after overlap weighting is:
+
+```{r}
+svy_design_overlap <- svydesign(
+  ids = ~1,
+  weights = ~ overlap_wt,
+  data = statin_db_overlap_wt
+)
+
+out_model_overlap <- svyglm(
+  RFFT ~ Statin,
+  design = svy_design_overlap,
+  family = gaussian()
+)
+
+summary(out_model_overlap)
+```
+
+## Comparing the results
+
+```{r}
+(map_df(list(crude_estimation, out_model_statin, out_model_statin_0.95,out_model_statin_0.99, out_model_overlap), ~{data.frame(summary(.x)$coefficients[2,1], confint(.x)[2,1], confint(.x)[2,2], summary(.x)$coefficients[2,4])}) %>% `colnames<-`(., c('B', 'LOWER 95% CI', 'UPPER 95% CI', 'p-value')) %>% 
+  `rownames<-`(., c('Crude', 'IPW Trimming 0.9', 'IPW Trimming 0.95', 'IPW Trimming 0.99', 'OW')))
+```
+
+Both unadjusted and IPW-adjusted estimations assessed a statistically significant difference between users and non-users in terms of RFFT score. More in detail, the largest difference was estimated without adjusting for the confounding variables (B= -13.06, p<0.001). On the other side, OW-adjusted estimation of the ATE resulted in a not statistically significant difference between groups, with an estimated difference of around -0.9 (B = -0.92, p<0.001).
+
+## Treatment duration
+
+To assess the effect of treatment duration on cognitive functions, the same approach can be used.
+
+### Outcome estimation (without weighting)
+
+```{r}
+statin_db <- statin_db %>% 
+  mutate(Years_corrected = ifelse(statin_db$Years == -1, 0, statin_db$Years))
+
+statin_db_trimming_cutoffs <- statin_db_trimming_cutoffs %>% 
+  mutate(Years_corrected = ifelse(statin_db_trimming_cutoffs$Years == -1, 0, statin_db_trimming_cutoffs$Years))
+
+statin_db_overlap_wt <- statin_db_overlap_wt %>% 
+    mutate(Years_corrected = ifelse(statin_db_overlap_wt$Years == -1, 0, statin_db_overlap_wt$Years))
+```
+
+```{r}
+crude_estimation_years <- lm(RFFT ~ Years_corrected, data = statin_db)
+
+summary(crude_estimation_years)
+```
+
+## Outcome estimation (IPW)
+
+```{r}
+#IPW with trimming at q=0.9
+svy_design <- svydesign(
+  ids = ~ 1,
+  weights = ~ wt_0.9,
+  data = statin_db_trimming_cutoffs
+)
+
+out_model_statin_years <- svyglm(
+  RFFT ~ Years_corrected,
+  design = svy_design,
+  family = gaussian()
+)
+
+summary(out_model_statin_years)
+```
+
+```{r}
+#IPW with trimming at q=0.95
+svy_design <- svydesign(
+  ids = ~ 1,
+  weights = ~ wt_0.95,
+  data = statin_db_trimming_cutoffs
+)
+
+out_model_statin_0.95_years <- svyglm(
+  RFFT ~ Years_corrected,
+  design = svy_design,
+  family = gaussian()
+)
+
+summary(out_model_statin_0.95_years)
+```
+
+```{r}
+#IPW with trimming at q=0.99
+svy_design <- svydesign(
+  ids = ~ 1,
+  weights = ~ wt_0.99,
+  data = statin_db_trimming_cutoffs
+)
+
+out_model_statin_0.99_years <- svyglm(
+  RFFT ~ Years_corrected,
+  design = svy_design,
+  family = gaussian()
+)
+
+summary(out_model_statin_0.99_years)
+```
+
+## Outcome estimation (Overlap Weighting)
+
+```{r}
+svy_design <- svydesign(
+  ids = ~ 1,
+  weights = ~ overlap_wt,
+  data = statin_db_overlap_wt
+)
+
+out_model_statin_overlap_years <- svyglm(
+  RFFT ~ Years_corrected,
+  design = svy_design,
+  family = gaussian()
+)
+
+summary(out_model_statin_overlap_years)
+```
+
+### Comparison of estimates (treatment duration)
+
+```{r}
+(map_df(list(crude_estimation_years, out_model_statin_years, out_model_statin_0.95_years,out_model_statin_0.99_years, out_model_statin_overlap_years), ~{data.frame(summary(.x)$coefficients[2,1], confint(.x)[2,1], confint(.x)[2,2], summary(.x)$coefficients[2,4])}) %>% `colnames<-`(., c('B', 'LOWER 95% CI', 'UPPER 95% CI', 'p-value')) %>% 
+  `rownames<-`(., c('Crude', 'IPW Trimming 0.9', 'IPW Trimming 0.95', 'IPW Trimming 0.99', 'OW')))
+```
+
+A significant reduction of RFFT score with the increase of time was estimated both with the unadjusted model and in the IPW-adjusted models. Also, in this case, OW estimation evaluated a non-significant effect of statin use on cognitive functions (B =-0.43, p=0.07). 
+
+
+**Altogether, these results highlighted how choosing different weighting approaches can lead to very different results.**
+
+
+## References
+
+- Joosten H, Visser ST, Eersel ME van, Gansevoort RT, Bilo HJG, Slaets JP, et al. Statin Use and Cognitive Function: Population-Based Observational Study with Long-Term Follow-Up. PLOS ONE. 2014;9:e115755.
+
+- Ruff RM, Light RH, Evans RW. The ruff figural fluency test: A normative study with adults. Developmental Neuropsychology. 1987;3:37–51.
+
+- Rosenbaum PR, Rubin DB. The Central Role of the Propensity Score in Observational Studies for Causal Effects. Biometrika. 1983;70:41–55.
+
+- Austin PC, Stuart EA. Moving towards best practice when using inverse probability of treatment weighting (IPTW) using the propensity score to estimate causal treatment effects in observational studies. Stat Med. 2015;34:3661–79.
+
+- Li F, Thomas LE. Addressing Extreme Propensity Scores via the Overlap Weights. American Journal of Epidemiology. 2018. https://doi.org/10.1093/aje/kwy201.
