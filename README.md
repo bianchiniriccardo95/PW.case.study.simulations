@@ -11,4 +11,4 @@ The package `PW.case.study.simulations` contains all the functions used for anal
 
 The file `Case_study_analysis.Rmd` reports the analysis conducted on the case study and the obtained results.
 
-All the analysis were conducted using RStudio (v4.1.2)
+All the analysis were conducted using RStudio (v4.1.2).
