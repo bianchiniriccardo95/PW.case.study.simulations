@@ -31,7 +31,14 @@ Baseline data about demographis, clinical characteristics and medical history we
 
 ## Libraries
 
-Import the libraries necessary for the analysis
+The `PW.case.study.simulations` package was built to analyse both the case study and to perform simulations: by loading this, the required libraries for the analysis are loaded as well. Can be easily installed from its Github repository using the `devtools` package.
+
+```{r, eval = F}
+library(devtools)
+devtools::install_github("bianchiniriccardo95/PW.case.study.simulations")
+```
+
+After having installed it, let's load the necessary libraries for the analysis
 
 ```{r results='hide', warning = FALSE, message = FALSE}
 library(PW.case.study.simulations)
@@ -39,11 +46,9 @@ library(Hmisc)
 library(gtsummary)
 ```
 
-The `PW.case.study.simulations` package was built to analyse both the case study and to perform simulations: by loading this, the required libraries for the analysis are loaded as well.
-
 ## Dataset
 
-Let's now load the dataset:
+Let's now load the dataset, already included in the `PW.case.study.simulations` package:
 
 ```{r}
 #The dataset is available in the PW.case.study.simulations package
