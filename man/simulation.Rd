@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulation.R
 \name{simulation}
 \alias{simulation}
-\title{{Simulation: simulazione}}
+\title{{Simulation: Monte Carlo simulation}}
 \usage{
 simulation(
   n,
@@ -15,23 +15,23 @@ simulation(
 )
 }
 \arguments{
-\item{{n}}{{Numero di osservazioni che vogliamo simulare}}
+\item{{n}}{{Number of simulated observations}}
 
-\item{{n_datasets}}{{Numero di dataset che vogliamo simulare, default 1000}}
+\item{{n_datasets}}{{Number of simulated dataset, default 1000}}
 
-\item{{seed}}{{Seed per la randomizzazione, default 42}}
+\item{{seed}}{{Random seed, default 42}}
 
-\item{{treatment_prevalence}}{{La treatment prevalence desiderata}}
+\item{{treatment_prevalence}}{{Desired treatment prevalence}}
 
-\item{{treatment_effect}}{{Il treatment effect stabilito, default -0.2}}
+\item{{treatment_effect}}{{Fixed treatment effect, default -0.9}}
 
-\item{{approach}}{{Tipo di approccio che vogliamo utilizzare, i.e. crude, IPW, OW}}
+\item{{approach}}{{Type of approach, i.e. crude, IPW, OW}}
 
-\item{{trim}}{{Se si è scelto IPW, specificare il cutoff per l'eventuale trimming (1 indica no trimming)}}
+\item{{trim}}{{If IPW, for specifying the desired trimming cutoff (1 means no trimming)}}
 }
 \value{
-{Una lista contenente le seguenti informazioni: livello di sbilanciamento delle covariate, il bias, il RMSE}
+{A list containing: balancing levels, bias and RMSE}
 }
 \description{
-Simulare una determinata configurazione che vogliamo testare
+Simulated a specified configuration
 }

@@ -2,13 +2,13 @@
 % Please edit documentation in R/define_alpha.R
 \name{define_alpha}
 \alias{define_alpha}
-\title{{Define alpha: definire i coefficienti di regressione logistica per le variabili confondenti}}
+\title{{Define alpha: define the logistic regression coefficients}}
 \usage{
 define_alpha(data)
 }
 \arguments{
-\item{{data}}{{Base di dati iniziali, che sarebbe quella del mio caso studio}}
+\item{{data}}{{Case study dataset}}
 }
 \description{
-{Define alpha: definire i coefficienti di regressione logistica per le variabili confondenti}
+{Define alpha: define the logistic regression coefficients}
 }

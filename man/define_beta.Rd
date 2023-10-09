@@ -2,13 +2,13 @@
 % Please edit documentation in R/define_beta.R
 \name{define_beta}
 \alias{define_beta}
-\title{{Define beta: definire i coefficienti di regressione per la simulazione della variabile di outcome}}
+\title{{Define beta: define the coefficients for simulating the outcome}}
 \usage{
 define_beta(data)
 }
 \arguments{
-\item{{data}}{{Base di dati, ovvero quella del nostro caso studio}}
+\item{{data}}{{Case study dataset}}
 }
 \description{
-{Define beta: definire i coefficienti di regressione per la simulazione della variabile di outcome}
+{Define beta: define the coefficients for simulating the outcome}
 }

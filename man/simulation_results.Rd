@@ -4,13 +4,13 @@
 \alias{simulation_results}
 \title{{Simulation results}}
 \usage{
-simulation_results(sim_results, treatment_effect = -0.2)
+simulation_results(sim_results, treatment_effect = -0.9)
 }
 \arguments{
-\item{{sim_results}}{{Output della funzione `simulation`}}
+\item{{sim_results}}{{Output of `simulation`}}
 
-\item{{treatment_effect}}{{Treatment effect stabilito, deve essere uguale a quello di simulation, default -0.2}}
+\item{{treatment_effect}}{{Desired treatment effect, default -0.9}}
 }
 \description{
-Estrarre i risultati delle simulazioni in termini di bias, SMD e RMSE
+Extract the simulation results in terms of Absolute Standardized Mean Difference, Bias and RMSE
 }

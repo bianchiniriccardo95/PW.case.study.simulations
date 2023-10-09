@@ -2,7 +2,7 @@
 % Please edit documentation in R/baseline_covariates.R
 \name{baseline_covariates}
 \alias{baseline_covariates}
-\title{{Baseline covariates: simulazione delle variabili confondenti}}
+\title{{Baseline covariates: baseline covariates simulation}}
 \usage{
 baseline_covariates(
   n,
@@ -12,17 +12,17 @@ baseline_covariates(
 )
 }
 \arguments{
-\item{{n}}{{Numero di casi che si vuole simulare}}
+\item{{n}}{{Number of simulated cases}}
 
-\item{{mus}}{{Vettore contenente le medie per ciascuna variabile che si vuole simulare}}
+\item{{mus}}{{Vector of the means for each simulated variable}}
 
-\item{{sds}}{{Vettore contenente le deviazioni standard}}
+\item{{sds}}{{Vector of the sds for each simulated variable}}
 
-\item{{corr_matrix}}{{Matrice di correlazione tra le variabili che si vuole stimare}}
+\item{{corr_matrix}}{{Matrix of correlations between simulated variables}}
 }
 \value{
-{Matrice il cui numero di righe è pari al numero di osservazioni che si vuole stimare e il numero di colonne è pari al numero di variabili che si vuole simulare}
+{A matrix in which each row corresponds to a simulated case and each column corresponds to a simulated variable}
 }
 \description{
-Simulazione delle covariate a partire da una distribuzione normale multivariata. In particolare, verranno ad essere simulate delle variabili che dovrebbero simulare le nove covariate confondenti del caso studio: 7 variabili binarie (con una prevalenza identica a quelle del caso studio), e 2 variabili continue (con media e sd pari alle corrispettive del caso studio)
+Baseline covariates simulation, starting from a multivariate normal distribution. Particularly, the simulated variables would resemble the case study ones: 7 binary variables (with the same prevalence as in the case study), and 2 continuous variables (with the same mean and sd as in the case study)
 }

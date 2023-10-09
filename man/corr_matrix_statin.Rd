@@ -2,13 +2,13 @@
 % Please edit documentation in R/corr_matrix_statin.R
 \name{corr_matrix_statin}
 \alias{corr_matrix_statin}
-\title{{corr_matrix_statin: estrazione della matrice di correlazione dal caso studio}}
+\title{{corr_matrix_statin: correlation matrix extraction from case study}}
 \usage{
 corr_matrix_statin(data)
 }
 \arguments{
-\item{{data}}{{Dataset del caso studio sull'utilizzo di statine}}
+\item{{data}}{{Case study dataset}}
 }
 \description{
-{corr_matrix_statin: estrazione della matrice di correlazione dal caso studio}
+{corr_matrix_statin: correlation matrix extraction from case study}
 }

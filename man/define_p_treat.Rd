@@ -2,17 +2,17 @@
 % Please edit documentation in R/define_p_treat.R
 \name{define_p_treat}
 \alias{define_p_treat}
-\title{{Definizione propensity score osservazioni simulate}}
+\title{{Simulate the propensity score for the simulated observations}}
 \usage{
 define_p_treat(int, alpha, baseline_covariates)
 }
 \arguments{
-\item{{int}}{{Intercetta del modello di regressione logistica: ottenibile utilizzando la funzione `bisection`}}
+\item{{int}}{{Logistic regression model intercept, obtained through `bisection`}}
 
-\item{{alpha}}{{Vettore dei coefficienti di regressione logistica tra le variabili confondenti e la probabilità del trattamento, deve avere la stessa lunghezza del numero di colonne della matrice `baseline_covariates`, ovvero 9}}
+\item{{alpha}}{{Logistic regression model coefficients: must have the same length as the number of columns of the matrix obtained through `baseline_covariates`}}
 
-\item{{baseline_covariates}}{{Variabili confondenti simulate utilizzando la funzione `baseline_covariates`}}
+\item{{baseline_covariates}}{{Simulated baseline covariates obtained throught `baseline_covariates`}}
 }
 \description{
-Definisce la probabilità di ricevere il trattamento per ciascuna delle osservazioni simulate
+Define the probability of receiving the treatment giving a series of simulated baseline covariates
 }

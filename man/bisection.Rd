@@ -2,7 +2,7 @@
 % Please edit documentation in R/bisection.R
 \name{bisection}
 \alias{bisection}
-\title{{Bisection: definizione dell'intercetta per il modello di stima dei propensity score}}
+\title{{Bisection: find the intercept for the propensity score model}}
 \usage{
 bisection(
   treatment_prevalence,
@@ -15,20 +15,20 @@ bisection(
 )
 }
 \arguments{
-\item{{treatment_prevalence}}{{La treatment prevalence desiderata (deve andare da 0 a 1)}}
+\item{{treatment_prevalence}}{{Desired treatment prevalence}}
 
-\item{{lower}}{{Valore minimo che l'intercetta può assumere}}
+\item{{lower}}{{Minimum value that the intercept can assume}}
 
-\item{{upper}}{{Valore massimo che l'intercetta può assumere}}
+\item{{upper}}{{Maximum value that the intercept can assume}}
 
-\item{{maxIter}}{{Massimo numero di iterazioni per la ricerca dell'intercetta}}
+\item{{maxIter}}{{Max number of iterations}}
 
-\item{{maxError}}{{Errore massimo}}
+\item{{maxError}}{{Max error}}
 
-\item{{baseline_covariates}}{{Variabili confondenti simulate attraverso la funzione `baseline_covariates`}}
+\item{{baseline_covariates}}{{Simulated baseline covariates, obtained through `baseline_covariates`}}
 
-\item{{alpha}}{{Vettore degli alpha, necessario per la funzione `define_p_treat`}}
+\item{{alpha}}{{Vector of alphas, necessary for using `define_p_treat`}}
 }
 \description{
-Per trovare l'intercetta adeguata al modello di stima dei propensity score per ottenere una determinata treatment prevalence desiderata.
+To find the right intercept of the propensity score model to obtain a specific treatment prevalence
 }
