@@ -7,13 +7,13 @@
 #' @param {seed} {Random seed, default 42}
 #' @param {treatment_prevalence} {Desired treatment prevalence}
 #' @param {treatment_effect} {Fixed treatment effect, default -0.9}
-#' @param {approach} {Type of approach, i.e. crude, IPW, OW}
+#' @param {approach} {Type of approach, i.e. crude, IPW, OW, EBAL}
 #' @param {trim} {If IPW, for specifying the desired trimming cutoff (1 means no trimming)}
 #'
 #' @return {A list containing: balancing levels, bias and RMSE}
 
 
-simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, treatment_effect = -0.2, approach = c('crude', 'IPW', 'OW'), trim = NULL){
+simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, treatment_effect = -0.2, approach = c('crude', 'IPW', 'OW', 'EBAL'), trim = NULL){
   set.seed(seed)
   corr_matrix <- corr_matrix_statin(statin_db_corr)
   alpha <- define_alpha(statin_db)
@@ -76,6 +76,18 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
         svy <- svydesign(ids = ~ 1, weights = ~ wts, data = simulated_dataset_wt)
         output <- list(
           smd_results = ow_balanced_smd, #smd delle diverse covariate in ogni dataset
+          results_ate = summary(svyglm(y_observed ~ treatment, design = svy, family = gaussian()))
+        )
+      }
+
+      else if (approach == 'EBAL'){
+        weightit_ebal <- weightit(treatment ~ x1 + x2 +x3 +x4+x5+x6+x7+x8+x9, data = simulated_dataset, estimand = 'ATE', method = 'ebal')
+        bal_tab <- bal.tab(weightit_ebal, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios'))
+        ebal_balanced_smd <- bal_tab$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
+        simulated_dataset_wt <- simulated_dataset %>% mutate(wts = weightit_ebal$weights)
+        svy <- svydesign(ids = ~ 1, weights = ~ wts, data = simulated_dataset_wt)
+        output <- list(
+          smd_results = ebal_balanced_smd, #smd delle diverse covariate in ogni dataset
           results_ate = summary(svyglm(y_observed ~ treatment, design = svy, family = gaussian()))
         )
       }

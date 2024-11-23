@@ -487,3 +487,71 @@ A significant reduction of RFFT score with the increase of time was estimated bo
 - Austin PC, Stuart EA. Moving towards best practice when using inverse probability of treatment weighting (IPTW) using the propensity score to estimate causal treatment effects in observational studies. Stat Med. 2015;34:3661–79.
 
 - Li F, Thomas LE. Addressing Extreme Propensity Scores via the Overlap Weights. American Journal of Epidemiology. 2018. https://doi.org/10.1093/aje/kwy201.
+
+
+
+## Entropy Balancing Weight Calculation
+
+In order to improve the analysis and the work, let's compare the already analyzed methods with another weighting method: **entropy balancing weighting method**. This method is implemented in the `ebal` package.
+
+```{r, message = F}
+library(ebal)
+```
+
+Let's calculate the weights using this method 
+
+```{r}
+set.seed(42)
+ebal_weights <- weightit(
+  Statin ~ Age + Gender + Education + CVD + Smoking + DM + Hypertension + BMI + Albuminuria,
+  data = statin_db,
+  method = 'ebal',
+  estimand = 'ATE' 
+)
+
+statin_db_ebal_wt <- statin_db %>% 
+  mutate(ebal_wt = ebal_weights$weights)
+
+ebal_tab <- bal.tab(x = statin_db_ebal_wt[,c('Age','Gender','Education','CVD','Smoking','DM', 'Hypertension', 'BMI', 'Albuminuria')], treat = statin_db_ebal_wt$Statin, weights = statin_db_ebal_wt[,'ebal_wt'], un = TRUE, abs = TRUE, s.d.denom = 'pooled', stats = c('mean.diffs', 'variance.ratios'))
+
+love_plot_ebal <- love.plot(ebal_tab, thresholds = 0.1)
+love_plot_ebal
+```
+
+Also with entropy balancing weights, we have a nearly perfect balance of covariates. However, the effective sample size after entropy balancing is different from the overlap weighting effective sample size.
+
+```{r}
+cat('OVERLAP WEIGHTING')
+summary(OW_trimming_cutoff)
+cat('\nENTROPY BALANCING')
+summary(ebal_weights)
+cat('\nIPW WEIGHTING')
+summary(weightit_list$ps)
+```
+
+
+Let's now estimate the outcomes with these weights.
+
+```{r}
+svy_design_ebal <- svydesign(
+  ids = ~1,
+  weights = ~ ebal_wt,
+  data = statin_db_ebal_wt
+)
+
+out_model_ebal <- svyglm(
+  RFFT ~ Statin,
+  design = svy_design_ebal,
+  family = gaussian()
+)
+
+summary(out_model_ebal)
+```
+
+Let's now finally compare this new method with the others, 
+
+```{r}
+(map_df(list(crude_estimation, out_model_statin, out_model_statin_0.95,out_model_statin_0.99, out_model_overlap, out_model_ebal), ~{data.frame(summary(.x)$coefficients[2,1], confint(.x)[2,1], confint(.x)[2,2], summary(.x)$coefficients[2,4])}) %>% `colnames<-`(., c('B', 'LOWER 95% CI', 'UPPER 95% CI', 'p-value')) %>% 
+  `rownames<-`(., c('Crude', 'IPW Trimming 0.9', 'IPW Trimming 0.95', 'IPW Trimming 0.99', 'OW', 'EBAL')))
+```
+
