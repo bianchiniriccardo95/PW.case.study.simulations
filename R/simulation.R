@@ -88,7 +88,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
             smd_results = NA,
             results_ate = NA
           )
-        }) else{
+        } else{
           ebal_balanced_smd <- bal_tab$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
           simulated_dataset_wt <- simulated_dataset %>% mutate(wts = weightit_ebal$weights)
           svy <- svydesign(ids = ~ 1, weights = ~ wts, data = simulated_dataset_wt)
