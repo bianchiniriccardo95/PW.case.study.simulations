@@ -81,15 +81,22 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
       }
 
       else if (approach == 'EBAL'){
-        weightit_ebal <- weightit(treatment ~ x1 + x2 +x3 +x4+x5+x6+x7+x8+x9, data = simulated_dataset, estimand = 'ATE', method = 'ebal')
-        bal_tab <- bal.tab(weightit_ebal, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios'))
-        ebal_balanced_smd <- bal_tab$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
-        simulated_dataset_wt <- simulated_dataset %>% mutate(wts = weightit_ebal$weights)
-        svy <- svydesign(ids = ~ 1, weights = ~ wts, data = simulated_dataset_wt)
-        output <- list(
-          smd_results = ebal_balanced_smd, #smd delle diverse covariate in ogni dataset
-          results_ate = summary(svyglm(y_observed ~ treatment, design = svy, family = gaussian()))
-        )
+        weightit_ebal <- weightit(treatment ~ x1 + x2 +x3 + x4 + x5 + x6 + x7 + x8 + x9, data = simulated_dataset, estimand = 'ATE', method = 'ebal')
+        bal_tab <- try(bal.tab(weightit_ebal, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios')))
+        if (inherits(bal_tab, 'try-error'){
+          output <- list(
+            smd_results = NA,
+            results_ate = NA
+          )
+        }) else{
+          ebal_balanced_smd <- bal_tab$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
+          simulated_dataset_wt <- simulated_dataset %>% mutate(wts = weightit_ebal$weights)
+          svy <- svydesign(ids = ~ 1, weights = ~ wts, data = simulated_dataset_wt)
+          output <- list(
+            smd_results = ebal_balanced_smd, #smd delle diverse covariate in ogni dataset
+            results_ate = summary(svyglm(y_observed ~ treatment, design = svy, family = gaussian()))
+          )
+        }
       }
 
       output

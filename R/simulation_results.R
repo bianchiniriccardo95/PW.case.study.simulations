@@ -13,9 +13,9 @@ simulation_results <- function(sim_results, treatment_effect = -0.9){
     smd_data <- sim_results[[i]][[1]]
     smd_df <- rbind(smd_df, smd_data)
   }
-  averaged_smd <- mean(colMeans(smd_df))
+  averaged_smd <- mean(colMeans(smd_df, na.rm = T))
 
-  ate_estimates <- map_dbl(sim_results,
+  ate_estimates <- map_dbl(filter(function(a) any(!is.na(a)), sim_results),
                            ~ {
                              ate_results <- .x$results_ate
                              ate_results$coefficients[2]
