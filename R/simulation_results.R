@@ -15,7 +15,7 @@ simulation_results <- function(sim_results, treatment_effect = -0.9){
   }
   averaged_smd <- mean(colMeans(smd_df, na.rm = T))
 
-  ate_estimates <- map_dbl(filter(function(a) any(!is.na(a)), sim_results),
+  ate_estimates <- map_dbl(Filter(function(a) any(!is.na(a)), sim_results),
                            ~ {
                              ate_results <- .x$results_ate
                              ate_results$coefficients[2]
