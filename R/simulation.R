@@ -83,7 +83,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
       else if (approach == 'EBAL'){
         weightit_ebal <- weightit(treatment ~ x1 + x2 +x3 + x4 + x5 + x6 + x7 + x8 + x9, data = simulated_dataset, estimand = 'ATE', method = 'ebal')
         bal_tab <- try(bal.tab(weightit_ebal, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios')))
-        if (inherits(bal_tab, 'try-error'){
+        if (inherits(bal_tab, 'try-error')){
           output <- list(
             smd_results = NA,
             results_ate = NA
