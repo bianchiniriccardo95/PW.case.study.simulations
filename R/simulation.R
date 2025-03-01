@@ -112,6 +112,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
                             verbose=TRUE)
         aipw_sl$fit()
         #Extract weights
+        aipw_s1$plot.p_score()
         aipw_sl$plot.ip_weights()
         aipw_weights <- aipw_sl$ip_weights.plot$data$ip_weights
         bal_tab_aipw <- bal.tab(x = simulated_dataset[,c(1:9)], weights = aipw_weights, s.d.denom = 'pooled', treat = simulated_dataset_wt$treatment, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios'))
