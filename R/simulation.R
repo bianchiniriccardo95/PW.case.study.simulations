@@ -112,6 +112,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
                             verbose=TRUE)
         aipw_sl$fit()
         #Extract weights
+        aipw_sl$summary()
         aipw_sl$plot.p_score()
         aipw_sl$plot.ip_weights()
         aipw_weights <- aipw_sl$ip_weights.plot$data$ip_weights
