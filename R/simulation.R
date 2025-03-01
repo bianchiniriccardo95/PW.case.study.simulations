@@ -101,9 +101,11 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
       else if (approach == 'AIPW'){
         set.seed(seed)
         cov <- c('x1','x2','x3','x4', 'x5', 'x6', 'x7', 'x8','x9')
-        aipw_sl <- AIPW$new(Y=simulated_dataset$y_observed, #Outcome
-                            A=simulated_dataset$treatment, #Group
-                            W=simulated_dataset[cov], #Covariates
+        simulated_dataset_aipw <- simulated_dataset %>%
+          mutate(treatment = as.numeric(treatment))
+        aipw_sl <- AIPW$new(Y=simulated_dataset_aipw$y_observed, #Outcome
+                            A=simulated_dataset_aipw$treatment, #Group
+                            W=simulated_dataset_aipw[cov], #Covariates
                             Q.SL.library=c("SL.glmnet"), #Outcome model
                             g.SL.library=c("SL.glm"), #Algorithms used for the exposure model
                             k_split=3, #Number of folds for splitting
@@ -112,7 +114,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
         #Extract weights
         aipw_sl$plot.ip_weights()
         aipw_weights <- aipw_sl$ip_weights.plot$data$ip_weights
-        bal_tab_aipw <- bal.tab(x = simulated_dataset_wt[,c(1:9)], weights = aipw_weights, s.d.denom = 'pooled', treat = simulated_dataset_wt$treatment, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios'))
+        bal_tab_aipw <- bal.tab(x = simulated_dataset[,c(1:9)], weights = aipw_weights, s.d.denom = 'pooled', treat = simulated_dataset_wt$treatment, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios'))
         ipw_balanced_smd <- bal_tab_aipw$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
         simulated_dataset_aipw_wt <- simulated_dataset %>% mutate(aipw_wts = aipw_weights)
         svy <- svydesign(ids = ~ 1, weights = ~ aipw_wts, data = simulated_dataset_aipw_wt)
