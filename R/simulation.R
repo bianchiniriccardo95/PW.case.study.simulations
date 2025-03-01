@@ -117,16 +117,21 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
         aipw_sl$plot.ip_weights()
         aipw_weights <- aipw_sl$ip_weights.plot$data$ip_weights
         bal_tab_aipw <- bal.tab(x = simulated_dataset[,c(1:9)], weights = aipw_weights, s.d.denom = 'pooled', treat = simulated_dataset$treatment, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios'))
-        ipw_balanced_smd <- bal_tab_aipw$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
-        simulated_dataset_aipw_wt <- simulated_dataset %>% mutate(aipw_wts = aipw_weights)
-        svy <- svydesign(ids = ~ 1, weights = ~ aipw_wts, data = simulated_dataset_aipw_wt)
-        output <- list(
-          smd_results = ipw_balanced_smd, #smd delle diverse covariate in ogni dataset
-          results_ate = summary(svyglm(y_observed ~ treatment, design = svy, family = gaussian()))
-        )
+        if (inherits(bal_tab_aipw, 'try-error')){
+          output <- list(
+            smd_results = NA,
+            results_ate = NA
+          )
+        } else{
+          ipw_balanced_smd <- bal_tab_aipw$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
+          simulated_dataset_aipw_wt <- simulated_dataset %>% mutate(aipw_wts = aipw_weights)
+          svy <- svydesign(ids = ~ 1, weights = ~ aipw_wts, data = simulated_dataset_aipw_wt)
+          output <- list(
+            smd_results = ipw_balanced_smd, #smd delle diverse covariate in ogni dataset
+            results_ate = summary(svyglm(y_observed ~ treatment, design = svy, family = gaussian()))
+          )
+        }
       }
-
-
       output
     }, .progress = TRUE
   )
