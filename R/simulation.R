@@ -129,7 +129,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
             results_ate = NA
           )
         } else{
-          ipw_balanced_smd <- bal_tab_aipw$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
+          ipw_balanced_smd <- bal_tab_aipw$Balance[2:nrow(bal_tab_aipw$Balance), 'Diff.Adj']
           simulated_dataset_aipw_wt <- simulated_dataset %>% mutate(aipw_wts = aipw_weights)
           svy <- svydesign(ids = ~ 1, weights = ~ aipw_wts, data = simulated_dataset_aipw_wt)
           output <- list(
