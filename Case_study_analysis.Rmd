@@ -555,3 +555,96 @@ Let's now finally compare this new method with the others,
   `rownames<-`(., c('Crude', 'IPW Trimming 0.9', 'IPW Trimming 0.95', 'IPW Trimming 0.99', 'OW', 'EBAL')))
 ```
 
+## Augmented IPW (AIPW)
+
+Let's introduce a new method: AUGMENTED INVERSE PROPBABILITY WEIGHTING.
+
+```{r}
+library(AIPW)
+library(SuperLearner)
+```
+
+
+Let's start from the dataset, and convert the categorical variables in integers.
+
+```{r}
+statin_db[c('Statin', 'Gender', 'Education', 'CVD', 'Smoking', 'DM', 'Hypertension', 'Albuminuria')] <- lapply(statin_db[c('Statin', 'Gender', 'Education', 'CVD', 'Smoking', 'DM', 'Hypertension', 'Albuminuria')], as.integer)
+
+
+statin_db[c('Statin', 'Gender', 'Education', 'CVD', 'Smoking', 'DM', 'Hypertension', 'Albuminuria')] <- statin_db[c('Statin', 'Gender', 'Education', 'CVD', 'Smoking', 'DM', 'Hypertension', 'Albuminuria')] - 1
+```
+
+
+Specify the covariates of the model
+
+```{r}
+cov <- c('Age', 'Gender', 'Education', 'CVD', 'Smoking', 'DM', 'Hypertension', 'BMI', 'Albuminuria')
+```
+
+Let's create the new AIPW object
+
+```{r}
+set.seed(42)
+
+aipw_sl <- AIPW$new(Y=statin_db$RFFT, #Outcome
+                    A=statin_db$Statin, #Group
+                    W=statin_db[cov], #Covariates
+                    Q.SL.library=c("SL.glmnet"), #Outcome model
+                    g.SL.library=c("SL.glm"), #Algorithms used for the exposure model
+                    k_split=3, #Number of folds for splitting
+                    verbose=TRUE)
+```
+
+Let's fit the model
+
+```{r}
+aipw_sl$stratified_fit()
+```
+
+```{r}
+aipw_sl$summary()
+aipw_sl$plo
+aipw_sl$plot.p_score()
+```
+
+With this model, we extracted, for each observation, an inverse probability weight. Let's see, with these weights, how is the balancing of the covariates.
+
+
+```{r}
+data("statin_db")
+statin_db <- statin_db %>% 
+  mutate(Albuminuria = Albuminuria_1)
+aipw_tab <- bal.tab(x = statin_db[,c('Age','Gender','Education','CVD','Smoking','DM', 'Hypertension', 'BMI', 'Albuminuria')], treat = statin_db$Statin, weights = aipw_sl$ip_weights.plot$data$ip_weights, un = TRUE, abs = TRUE, s.d.denom = 'pooled', stats = c('mean.diffs', 'variance.ratios'))
+
+love_plot_aipw <- love.plot(aipw_tab, thresholds = 0.1)
+love_plot_aipw
+```
+
+Let's now estimate the outcomes with these weights.
+
+```{r}
+
+statin_db_aipw <- statin_db %>% 
+  mutate(aipw_wt = aipw_sl$ip_weights.plot$data$ip_weights)
+
+svy_design_aipw <- svydesign(
+  ids = ~1,
+  weights = ~ aipw_wt,
+  data = statin_db_aipw
+)
+
+out_model_aipw <- svyglm(
+  RFFT ~ Statin,
+  design = svy_design_aipw,
+  family = gaussian()
+)
+
+summary(out_model_aipw)
+```
+
+Let's now finally compare this new method with the others, 
+
+```{r}
+(map_df(list(crude_estimation, out_model_statin, out_model_statin_0.95,out_model_statin_0.99, out_model_overlap, out_model_ebal, out_model_aipw), ~{data.frame(summary(.x)$coefficients[2,1], confint(.x)[2,1], confint(.x)[2,2], summary(.x)$coefficients[2,4])}) %>% `colnames<-`(., c('B', 'LOWER 95% CI', 'UPPER 95% CI', 'p-value')) %>% 
+  `rownames<-`(., c('Crude', 'IPW Trimming 0.9', 'IPW Trimming 0.95', 'IPW Trimming 0.99', 'OW', 'EBAL', 'AIPW')))
+```

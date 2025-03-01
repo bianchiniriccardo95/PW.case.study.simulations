@@ -13,7 +13,7 @@
 #' @return {A list containing: balancing levels, bias and RMSE}
 
 
-simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, treatment_effect = -0.2, approach = c('crude', 'IPW', 'OW', 'EBAL'), trim = NULL){
+simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, treatment_effect = -0.2, approach = c('crude', 'IPW', 'OW', 'EBAL', 'AIPW'), trim = NULL){
   set.seed(seed)
   corr_matrix <- corr_matrix_statin(statin_db_corr)
   alpha <- define_alpha(statin_db)
@@ -98,6 +98,29 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
           )
         }
       }
+      else if (approach == 'AIPW'){
+        set.seed(seed)
+        aipw_sl <- AIPW$new(Y=statin_db$RFFT, #Outcome
+                            A=statin_db$Statin, #Group
+                            W=statin_db[cov], #Covariates
+                            Q.SL.library=c("SL.glmnet"), #Outcome model
+                            g.SL.library=c("SL.glm"), #Algorithms used for the exposure model
+                            k_split=3, #Number of folds for splitting
+                            verbose=TRUE)
+        aipw_sl$stratified_fit()
+        #Extract weights
+        aipw_sl$plot.ip_weights()
+        aipw_weights <- aipw_sl$ip_weights.plot$data$ip_weights
+        bal_tab_aipw <- bal.tab(x = simulated_dataset_wt[,c(1:9)], weights = aipw_weights, s.d.denom = 'pooled', treat = simulated_dataset_wt$treatment, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios'))
+        ipw_balanced_smd <- bal_tab_aipw$Balance[2:nrow(bal_tab$Balance), 'Diff.Adj']
+        simulated_dataset_aipw_wt <- simulated_dataset %>% mutate(aipw_wts = aipw_weights)
+        svy <- svydesign(ids = ~ 1, weights = ~ aipw_wts, data = simulated_dataset_aipw_wt)
+        output <- list(
+          smd_results = ipw_balanced_smd, #smd delle diverse covariate in ogni dataset
+          results_ate = summary(svyglm(y_observed ~ treatment, design = svy, family = gaussian()))
+        )
+      }
+
 
       output
     }, .progress = TRUE
