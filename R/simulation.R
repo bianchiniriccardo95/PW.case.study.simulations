@@ -110,7 +110,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
                             g.SL.library=c("SL.glm"), #Algorithms used for the exposure model
                             k_split=3, #Number of folds for splitting
                             verbose=TRUE)
-        aipw_sl$stratified_fit()
+        aipw_sl$fit()
         #Extract weights
         aipw_sl$plot.ip_weights()
         aipw_weights <- aipw_sl$ip_weights.plot$data$ip_weights
