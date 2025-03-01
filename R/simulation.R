@@ -101,7 +101,14 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
       else if (approach == 'AIPW'){
         cov <- c('x1','x2','x3','x4', 'x5', 'x6', 'x7', 'x8','x9')
         simulated_dataset_aipw <- simulated_dataset %>%
-          mutate(treatment = as.numeric(treatment))
+          mutate(treatment = as.integer(treatment),
+                 x1 = as.integer(x1),
+                 x2 = as.integer(x2),
+                 x3 = as.integer(x3),
+                 x4 = as.integer(x4),
+                 x5 = as.integer(x5),
+                 x6 = as.integer(x6),
+                 x7 = as.integer(x7))
         aipw_sl <- AIPW$new(Y=simulated_dataset_aipw$y_observed, #Outcome
                             A=simulated_dataset_aipw$treatment, #Group
                             W=simulated_dataset_aipw[cov], #Covariates
@@ -115,7 +122,7 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
         aipw_sl$plot.p_score()
         aipw_sl$plot.ip_weights()
         aipw_weights <- aipw_sl$ip_weights.plot$data$ip_weights
-        bal_tab_aipw <- try(bal.tab(x = simulated_dataset[,c(1:9)], weights = aipw_weights, s.d.denom = 'pooled', treat = simulated_dataset$treatment, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios')))
+        bal_tab_aipw <- try(bal.tab(x = simulated_dataset[cov], weights = aipw_weights, s.d.denom = 'pooled', treat = simulated_dataset$treatment, un = T, abs = TRUE, stats = c('mean.diffs','variance.ratios')))
         if (inherits(bal_tab_aipw, 'try-error')){
           output <- list(
             smd_results = NA,
