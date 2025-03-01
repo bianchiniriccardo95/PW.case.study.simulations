@@ -101,9 +101,9 @@ simulation <- function(n, n_datasets = 1000, seed = 42, treatment_prevalence, tr
       else if (approach == 'AIPW'){
         set.seed(seed)
         cov <- c('x1','x2','x3','x4', 'x5', 'x6', 'x7', 'x8','x9')
-        aipw_sl <- AIPW$new(Y=statin_db$RFFT, #Outcome
-                            A=statin_db$Statin, #Group
-                            W=statin_db[cov], #Covariates
+        aipw_sl <- AIPW$new(Y=simulated_dataset$y_observed, #Outcome
+                            A=simulated_dataset$treatment, #Group
+                            W=simulated_dataset[cov], #Covariates
                             Q.SL.library=c("SL.glmnet"), #Outcome model
                             g.SL.library=c("SL.glm"), #Algorithms used for the exposure model
                             k_split=3, #Number of folds for splitting
