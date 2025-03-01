@@ -598,13 +598,13 @@ aipw_sl <- AIPW$new(Y=statin_db$RFFT, #Outcome
 Let's fit the model
 
 ```{r}
-aipw_sl$stratified_fit()
+aipw_sl$fit()
 ```
 
 ```{r}
 aipw_sl$summary()
-aipw_sl$plo
 aipw_sl$plot.p_score()
+aipw_sl$plot.ip_weights()
 ```
 
 With this model, we extracted, for each observation, an inverse probability weight. Let's see, with these weights, how is the balancing of the covariates.
@@ -623,7 +623,6 @@ love_plot_aipw
 Let's now estimate the outcomes with these weights.
 
 ```{r}
-
 statin_db_aipw <- statin_db %>% 
   mutate(aipw_wt = aipw_sl$ip_weights.plot$data$ip_weights)
 
